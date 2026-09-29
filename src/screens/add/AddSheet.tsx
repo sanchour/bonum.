@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { PILLARS } from '../../data/wisdom'
+import { PILLARS, saveCustomWisdomEntry } from '../../data/wisdom'
 import { nav } from '../../lib/nav'
 import { haptic } from '../../lib/haptics'
 import { toast } from '../../components/Toast'
@@ -19,20 +19,8 @@ export function AddSheet() {
       return
     }
 
-    const targetPillar = PILLARS[selectedPillarId]
-    if (targetPillar) {
-      const sectionName = sectionTitle.trim() || 'General Insights'
-      let section = targetPillar.sections.find((s) => s.title.toLowerCase() === sectionName.toLowerCase())
-      if (!section) {
-        section = { title: sectionName, entries: [] }
-        targetPillar.sections.push(section)
-      }
-      section.entries.unshift({
-        id: `custom-${Date.now()}`,
-        title: title.trim(),
-        body: body.trim(),
-      })
-    }
+    const sectionName = sectionTitle.trim() || 'General Insights'
+    saveCustomWisdomEntry(selectedPillarId, sectionName, title.trim(), body.trim())
 
     haptic('success')
     toast('Wisdom added to Bonum')

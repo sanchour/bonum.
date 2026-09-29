@@ -1,0 +1,19 @@
+{
+  "id": "./",
+  "name": "Bonum — Wisdom & Virtue",
+  "short_name": "Bonum",
+  "description": "A collection of wisdom on morality, virtue, and becoming a good person.",
+  "lang": "en",
+  "dir": "ltr",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
+  "orientation": "portrait",
+  "background_color": "#fafaf8",
+  "theme_color": "#fafaf8",
+  "categories": ["lifestyle", "books", "education", "philosophy"],
+  "icons": [
+    { "src": "favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}

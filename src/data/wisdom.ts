@@ -476,4 +476,64 @@ export const RELIGIOUS_PLACES = [
   },
 ];
 
-// ── App State ──
+// ── App State & Custom Wisdom Persistence ──
+const STORAGE_KEY = 'bonum_custom_wisdom_v1';
+
+export function getCustomWisdom(): Array<{ pillarId: string; sectionTitle: string; entry: { id: string; title: string; body: string } }> {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+}
+
+export function saveCustomWisdomEntry(pillarId: string, sectionTitle: string, title: string, body: string) {
+  const newEntry = {
+    id: `custom-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+    title,
+    body,
+  };
+  
+  // Add to in-memory PILLARS
+  const pillar = PILLARS[pillarId];
+  if (pillar) {
+    let section = pillar.sections.find((s) => s.title.toLowerCase() === sectionTitle.toLowerCase());
+    if (!section) {
+      section = { title: sectionTitle, entries: [] };
+      pillar.sections.push(section);
+    }
+    section.entries.unshift(newEntry);
+  }
+
+  // Persist to localStorage
+  try {
+    const existing = getCustomWisdom();
+    existing.unshift({ pillarId, sectionTitle, entry: newEntry });
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(existing));
+  } catch (err) {
+    console.error('Failed to save to localStorage', err);
+  }
+
+  return newEntry;
+}
+
+// Auto-hydrate saved wisdom on script load
+try {
+  const saved = getCustomWisdom();
+  for (const item of saved) {
+    const pillar = PILLARS[item.pillarId];
+    if (pillar) {
+      let section = pillar.sections.find((s) => s.title.toLowerCase() === item.sectionTitle.toLowerCase());
+      if (!section) {
+        section = { title: item.sectionTitle, entries: [] };
+        pillar.sections.push(section);
+      }
+      if (!section.entries.some((e) => e.id === item.entry.id)) {
+        section.entries.unshift(item.entry);
+      }
+    }
+  }
+} catch {
+  /* ignore */
+}
