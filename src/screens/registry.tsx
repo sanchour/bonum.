@@ -5,6 +5,7 @@ import { Meditatio } from './meditatio/Meditatio'
 import { Search } from './search/Search'
 import { PillarScreen } from './pillar/PillarScreen'
 import { EntrySheet } from './pillar/EntrySheet'
+import { AddSheet } from './add/AddSheet'
 
 export function renderRoot(tab: Tab): ReactNode {
   switch (tab) {
@@ -29,10 +30,9 @@ export function renderRoute(route: Route): ReactNode {
 export function renderSheet(route: SheetRoute): { content: ReactNode; size?: 'large' | 'medium' | 'tall' } {
   switch (route.name) {
     case 'add':
-      // return { content: <AddSheet /> }
-      return { content: <div className="sheet-content pad">Add Wisdom Placeholder</div> }
+      return { content: <AddSheet />, size: 'large' }
     case 'entry':
-      return { content: <EntrySheet id={route.id} /> }
+      return { content: <EntrySheet id={route.id} />, size: 'large' }
     default:
       return { content: null }
   }

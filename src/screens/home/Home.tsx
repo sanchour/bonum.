@@ -7,7 +7,7 @@ export function Home() {
   const pillars = Object.values(PILLARS)
 
   return (
-    <Screen title="Bonum">
+    <Screen title="Bonum" largeTitle>
       <div className="pad">
         <p className="subtitle">A collection of wisdom on morality and being a good person.</p>
         
