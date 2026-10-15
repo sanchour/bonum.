@@ -4,7 +4,9 @@
  * static assets available offline, so the scriptorium opens in airplane mode.
  */
 const VERSION = "bonum-shell-v1";
-const SHELL = ["/", "/manifest.webmanifest", "/icons/icon.svg", "/icons/icon-192.png", "/icons/icon-512.png"];
+// Paths are resolved against the registration scope, so the worker works at /bonum/ on Pages and at / locally.
+const BASE = new URL(self.registration ? self.registration.scope : self.location).pathname;
+const SHELL = ["", "manifest.webmanifest", "icons/icon.svg", "icons/icon-192.png", "icons/icon-512.png"].map((p) => BASE + p);
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
@@ -26,8 +28,8 @@ self.addEventListener("activate", (event) => {
 
 function isStaticAsset(url) {
   return (
-    url.pathname.startsWith("/_next/static/") ||
-    url.pathname.startsWith("/icons/") ||
+    url.pathname.includes("/_next/static/") ||
+    url.pathname.includes("/icons/") ||
     /\.(?:woff2?|ttf|otf|png|svg|ico|webp)$/.test(url.pathname)
   );
 }
@@ -38,7 +40,6 @@ self.addEventListener("fetch", (event) => {
 
   const url = new URL(request.url);
   if (url.origin !== self.location.origin) return;
-  if (url.pathname.startsWith("/api/")) return; // sync and oracle calls are never cached
 
   // Navigations: network first, fall back to the cached shell.
   if (request.mode === "navigate") {
@@ -46,10 +47,10 @@ self.addEventListener("fetch", (event) => {
       fetch(request)
         .then((response) => {
           const copy = response.clone();
-          caches.open(VERSION).then((cache) => cache.put("/", copy));
+          caches.open(VERSION).then((cache) => cache.put(BASE, copy));
           return response;
         })
-        .catch(() => caches.match("/").then((cached) => cached || Response.error())),
+        .catch(() => caches.match(BASE).then((cached) => cached || Response.error())),
     );
     return;
   }

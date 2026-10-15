@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Cormorant_Garamond, Inter, JetBrains_Mono } from "next/font/google";
 import { ServiceWorkerRegistrar } from "@/components/ServiceWorkerRegistrar";
+import { withBase } from "@/lib/base";
 import "./globals.css";
 
 const cormorant = Cormorant_Garamond({
@@ -38,8 +39,8 @@ export const metadata: Metadata = {
   },
   formatDetection: { telephone: false },
   icons: {
-    icon: [{ url: "/icons/icon.svg", type: "image/svg+xml" }],
-    apple: [{ url: "/icons/apple-touch-icon.png", sizes: "180x180" }],
+    icon: [{ url: withBase("/icons/icon.svg"), type: "image/svg+xml" }],
+    apple: [{ url: withBase("/icons/apple-touch-icon.png"), sizes: "180x180" }],
   },
 };
 

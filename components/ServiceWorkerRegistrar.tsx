@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { withBase } from "@/lib/base";
 
 /** Registers the offline shell worker in production builds only, so dev HMR is never cached. */
 export function ServiceWorkerRegistrar() {
@@ -9,7 +10,7 @@ export function ServiceWorkerRegistrar() {
     if (!("serviceWorker" in navigator)) return;
 
     const register = () => {
-      navigator.serviceWorker.register("/sw.js", { scope: "/" }).catch((error: unknown) => {
+      navigator.serviceWorker.register(withBase("/sw.js"), { scope: withBase("/") }).catch((error: unknown) => {
         console.warn("[bonum] service worker registration failed", error);
       });
     };
