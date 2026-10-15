@@ -1,13 +1,13 @@
 "use client";
 
-import { Anvil, Feather, Library, Sun, type LucideIcon } from "lucide-react";
+import { Anvil, Feather, Library, Settings, Sun, type LucideIcon } from "lucide-react";
 import { motion } from "motion/react";
 import { useEffect, useState } from "react";
 import { haptic } from "@/lib/haptics";
 import { springs } from "@/lib/theme";
 import { BonumMark } from "./BonumMark";
 import type { Mode } from "./BonumContext";
-import { SyncIndicator } from "./SyncIndicator";
+import { useSyncState, type SyncMode } from "@/lib/sync";
 
 interface ModeMeta {
   mode: Mode;
@@ -33,15 +33,46 @@ function useModifierLabel(): string {
   return label;
 }
 
+const STATUS_DOT: Record<SyncMode, string> = {
+  booting: "bg-transparent",
+  local: "bg-transparent",
+  idle: "bg-gold",
+  syncing: "bg-gold-bright animate-pulse",
+  offline: "bg-parchment/60",
+  error: "bg-[#B4543A]",
+};
+
+/** The settings gear. A small dot on its corner carries what the sync indicator used to say. */
+function SettingsButton({ onClick, className }: { onClick: () => void; className: string }) {
+  const { mode, pending } = useSyncState();
+  const label = `Settings. Sync: ${mode}${pending > 0 ? `, ${pending} pending` : ""}.`;
+  return (
+    <motion.button
+      type="button"
+      onClick={onClick}
+      whileTap={{ scale: 0.92 }}
+      transition={springs.press}
+      aria-label={label}
+      title="Settings (data, appearance, sync)"
+      className={className}
+    >
+      <Settings size={19} strokeWidth={1.5} />
+      <span className={`absolute right-2 top-2 size-2 rounded-full ring-2 ring-obsidian ${STATUS_DOT[mode]}`} />
+    </motion.button>
+  );
+}
+
 export function AppShell({
   mode,
   onModeChange,
   onCapture,
+  onSettings,
   children,
 }: {
   mode: Mode;
   onModeChange: (mode: Mode) => void;
   onCapture: () => void;
+  onSettings: () => void;
   children: React.ReactNode;
 }) {
   const shortcut = useModifierLabel();
@@ -108,14 +139,20 @@ export function AppShell({
             <Feather size={18} strokeWidth={1.5} />
             <kbd className="font-mono text-[10px] tracking-wider text-gold/80">{shortcut}</kbd>
           </motion.button>
-          <SyncIndicator variant="rail" />
+          <SettingsButton
+            onClick={onSettings}
+            className="relative flex w-full items-center justify-center rounded-xl py-3.5 text-parchment transition-colors hover:bg-white/[0.04] hover:text-vellum"
+          />
         </div>
       </nav>
 
       {/* ── Mobile: floating sync status ─────────────────────────── */}
       <div className="pt-safe pointer-events-none fixed right-0 top-0 z-40 md:hidden">
         <div className="pointer-events-auto mr-4 mt-3">
-          <SyncIndicator variant="compact" />
+          <SettingsButton
+            onClick={onSettings}
+            className="relative flex size-10 items-center justify-center rounded-full bg-obsidian/60 text-parchment ring-1 ring-white/5 backdrop-blur-md"
+          />
         </div>
       </div>
 

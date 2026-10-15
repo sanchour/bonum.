@@ -1,6 +1,6 @@
 "use client";
 
-import { Anvil, Church, CornerDownLeft, Feather, Library, RefreshCw } from "lucide-react";
+import { Anvil, CornerDownLeft, Feather, Library, RefreshCw, Settings, Sun } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useRef, useState } from "react";
 import { createAxiom, splitCapture } from "@/lib/actions";
@@ -83,10 +83,19 @@ function PaletteBody({ onClose }: { onClose: () => void }) {
     onClose();
   };
 
-  const commands: { label: string; hint: string; icon: typeof Church; run: () => void }[] = [
-    { label: "Sanctuary · Daily Liturgy", hint: "1", icon: Church, run: () => go("sanctuary") },
+  const commands: { label: string; hint: string; icon: typeof Sun; run: () => void }[] = [
+    { label: "Sanctuary · Daily Liturgy", hint: "1", icon: Sun, run: () => go("sanctuary") },
     { label: "The Six Tomes", hint: "2", icon: Library, run: () => go("tomes") },
     { label: "The Forge", hint: "3", icon: Anvil, run: () => go("forge") },
+    {
+      label: "Settings",
+      hint: "⌘,",
+      icon: Settings,
+      run: () => {
+        onClose();
+        nav.openSettings();
+      },
+    },
     {
       label: "Sync with Notion now",
       hint: "",

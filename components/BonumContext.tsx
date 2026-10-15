@@ -28,6 +28,7 @@ export interface BonumNav {
   tomeRequest: TomeRequest | null;
   openTome: (pillarId: PillarId, axiomId?: string) => void;
   openPalette: () => void;
+  openSettings: () => void;
 }
 
 export const BonumNavContext = createContext<BonumNav | null>(null);

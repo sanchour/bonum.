@@ -2,6 +2,8 @@
  * Haptic-style feedback. Uses the Vibration API where it exists (Android, some desktops);
  * elsewhere the visual spring response carries the feeling on its own.
  */
+import { getSettings } from "./settings";
+
 type Pattern = "tick" | "press" | "affirm" | "etch" | "warn";
 
 const PATTERNS: Record<Pattern, number | number[]> = {
@@ -14,6 +16,7 @@ const PATTERNS: Record<Pattern, number | number[]> = {
 
 export function haptic(pattern: Pattern = "tick"): void {
   if (typeof navigator === "undefined" || typeof navigator.vibrate !== "function") return;
+  if (!getSettings().haptics) return;
   try {
     navigator.vibrate(PATTERNS[pattern]);
   } catch {

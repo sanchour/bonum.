@@ -2,6 +2,7 @@
 
 import { AnimatePresence, MotionConfig, motion } from "motion/react";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { applySettings, useSettings } from "@/lib/settings";
 import { syncEngine } from "@/lib/sync";
 import { springs } from "@/lib/theme";
 import type { PillarId } from "@/lib/types";
@@ -12,6 +13,7 @@ import { BonumNavContext, MODES, type BonumNav, type ForgeRequest, type Mode, ty
 import { CommandPalette } from "./CommandPalette";
 import { ForgeView } from "./ForgeView";
 import { SanctuaryView } from "./SanctuaryView";
+import { SettingsSheet } from "./SettingsSheet";
 import { Toaster } from "./Toaster";
 import { TomesView } from "./TomesView";
 
@@ -24,12 +26,15 @@ export function BonumApp() {
   const [mounted, setMounted] = useState(false);
   const [mode, setModeState] = useState<Mode>("sanctuary");
   const [paletteOpen, setPaletteOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const settings = useSettings();
   const [forgeRequest, setForgeRequest] = useState<ForgeRequest | null>(null);
   const [tomeRequest, setTomeRequest] = useState<TomeRequest | null>(null);
 
   useEffect(() => {
     const fromUrl = new URLSearchParams(window.location.search).get("mode");
     if (isMode(fromUrl)) setModeState(fromUrl);
+    applySettings();
     setMounted(true);
     syncEngine.start();
     return () => syncEngine.stop();
@@ -63,10 +68,11 @@ export function BonumApp() {
   );
 
   const openPalette = useCallback(() => setPaletteOpen(true), []);
+  const openSettings = useCallback(() => setSettingsOpen(true), []);
 
   const nav = useMemo<BonumNav>(
-    () => ({ mode, setMode, forgeRequest, openForge, tomeRequest, openTome, openPalette }),
-    [mode, setMode, forgeRequest, openForge, tomeRequest, openTome, openPalette],
+    () => ({ mode, setMode, forgeRequest, openForge, tomeRequest, openTome, openPalette, openSettings }),
+    [mode, setMode, forgeRequest, openForge, tomeRequest, openTome, openPalette, openSettings],
   );
 
   // Global keyboard: ⌘K / Ctrl+K quick capture; 1 · 2 · 3 switch modes.
@@ -75,6 +81,11 @@ export function BonumApp() {
       if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
         event.preventDefault();
         setPaletteOpen((open) => !open);
+        return;
+      }
+      if ((event.metaKey || event.ctrlKey) && event.key === ",") {
+        event.preventDefault();
+        setSettingsOpen((open) => !open);
         return;
       }
       if (paletteOpen || event.metaKey || event.ctrlKey || event.altKey || isTypingTarget(event.target)) return;
@@ -93,8 +104,11 @@ export function BonumApp() {
 
   return (
     <BonumNavContext.Provider value={nav}>
-      <MotionConfig reducedMotion="user" transition={springs.snappy}>
-        <AppShell mode={mode} onModeChange={setMode} onCapture={openPalette}>
+      <MotionConfig
+        reducedMotion={settings.motion === "reduced" ? "always" : settings.motion === "full" ? "never" : "user"}
+        transition={springs.snappy}
+      >
+        <AppShell mode={mode} onModeChange={setMode} onCapture={openPalette} onSettings={openSettings}>
           {/* popLayout: the next view starts entering at once instead of waiting for the exit. */}
           <AnimatePresence mode="popLayout" initial={false}>
             <motion.div
@@ -111,6 +125,7 @@ export function BonumApp() {
           </AnimatePresence>
         </AppShell>
         <CommandPalette open={paletteOpen} onClose={() => setPaletteOpen(false)} />
+        <SettingsSheet open={settingsOpen} onClose={() => setSettingsOpen(false)} />
         <Toaster />
       </MotionConfig>
     </BonumNavContext.Provider>

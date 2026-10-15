@@ -453,21 +453,31 @@ export class BonumDB extends Dexie {
     });
 
     this.on("populate", async (tx) => {
-      await tx.table("pillars").bulkAdd([...PILLARS]);
-      const axioms = buildSeedAxioms();
-      await tx.table("axioms").bulkAdd(axioms);
-      const enqueuedAt = new Date().toISOString();
-      await tx.table("syncQueue").bulkAdd(
-        axioms.map<SyncQueueEntry>((axiom) => ({
-          axiomId: axiom.id,
-          enqueuedAt,
-          attempts: 0,
-          nextAttemptAt: enqueuedAt,
-          lastError: null,
-        })),
-      );
+      await seedStarterData({ pillars: tx.table("pillars"), axioms: tx.table("axioms"), queue: tx.table("syncQueue") });
     });
   }
+}
+
+interface SeedTargets {
+  pillars: { bulkPut(items: Pillar[]): PromiseLike<unknown> };
+  axioms: { bulkAdd(items: Axiom[]): PromiseLike<unknown> };
+  queue: { bulkAdd(items: SyncQueueEntry[]): PromiseLike<unknown> };
+}
+
+async function seedStarterData({ pillars, axioms: axiomsTable, queue }: SeedTargets): Promise<void> {
+  await pillars.bulkPut([...PILLARS]);
+  const axioms = buildSeedAxioms();
+  await axiomsTable.bulkAdd(axioms);
+  const enqueuedAt = new Date().toISOString();
+  await queue.bulkAdd(
+    axioms.map<SyncQueueEntry>((axiom) => ({
+      axiomId: axiom.id,
+      enqueuedAt,
+      attempts: 0,
+      nextAttemptAt: enqueuedAt,
+      lastError: null,
+    })),
+  );
 }
 
 /**
@@ -498,4 +508,16 @@ export async function getMeta(key: string): Promise<string | null> {
 
 export async function setMeta(key: string, value: string): Promise<void> {
   await db.meta.put({ key, value });
+}
+
+/** Wipes every table. With `starter`, the six pillars and the starter canon are restored. */
+export async function resetDatabase(options: { starter: boolean }): Promise<void> {
+  await db.transaction("rw", [db.pillars, db.axioms, db.syncQueue, db.meta, db.rituals], async () => {
+    await Promise.all([db.pillars.clear(), db.axioms.clear(), db.syncQueue.clear(), db.meta.clear(), db.rituals.clear()]);
+    if (options.starter) {
+      await seedStarterData({ pillars: db.pillars, axioms: db.axioms, queue: db.syncQueue });
+    } else {
+      await db.pillars.bulkPut([...PILLARS]);
+    }
+  });
 }
