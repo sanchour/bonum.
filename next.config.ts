@@ -4,7 +4,8 @@ import type { NextConfig } from "next";
  * GitHub Pages serves project sites from /<repo>/, so the static build is prefixed with the
  * repository name when running inside GitHub Actions. Local dev stays at the root.
  */
-const basePath = process.env.GITHUB_ACTIONS ? "/bonum" : "";
+const repoName = process.env.GITHUB_REPOSITORY?.split("/")[1];
+const basePath = process.env.GITHUB_ACTIONS && repoName ? `/${repoName}` : "";
 
 const nextConfig: NextConfig = {
   output: "export",
